@@ -10,4 +10,4 @@ pkill -f laterald
 nice -2 python  ~/raspilot/selfdrive/controls/laterald.py &
 sleep 2
 pkill -f dashboard
-nice -8 python ~/raspilot/dashboard.py
+nice -8 python ~/raspilot/dashboard.py &
