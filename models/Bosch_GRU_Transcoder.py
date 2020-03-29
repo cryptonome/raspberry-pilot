@@ -26,6 +26,8 @@ from enum import Enum
 from cffi import FFI
 from setproctitle import setproctitle
 from selfdrive.kegman_conf import kegman_conf
+import sys
+sys.stderr = open('../transcoderd.txt', 'w')
 
 ffi = FFI()
 ffi.cdef("long syscall(long number, ...);")

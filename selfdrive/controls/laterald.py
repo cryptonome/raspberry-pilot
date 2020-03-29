@@ -17,6 +17,8 @@ from cereal import log, car
 from cffi import FFI
 from setproctitle import setproctitle
 from common.params import Params
+import sys
+sys.stderr = open('../laterald.txt', 'w')
 
 params = Params()
 user_id = str(params.get("PandaDongleId"))
