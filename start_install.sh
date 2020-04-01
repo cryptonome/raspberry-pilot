@@ -49,7 +49,9 @@ sudo nmcli d wifi connect $1 password $2
 sudo apt remove -y unattended-upgrades
 
 # update Ubuntu and clean up
-sudo apt full-upgrade -y
+# full update temporarily commented out
+#sudo apt full-upgrade -y
+
 sudo apt autoremove -y
 
 # install dependencies
