@@ -62,6 +62,7 @@ def data_sample(CI, CC, can_sock, carstate, lac_log):
     cs_send.carState.events = events
     carstate.send(cs_send.to_bytes())
 
+
   return CS, events
 
 def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_kph, AM):
@@ -175,7 +176,7 @@ def state_control(frame, lkasMode, path_plan, CS, CP, state, events, AM, LaC, la
 
   return actuators, lac_log
 
-def data_send(sm, CS, CI, CP, state, events, actuators, carstate, carcontrol, carevents, carparams, controlsstate, sendcan, AM, LaC, start_time, lac_log, events_prev):
+def data_send(sm, CS, CI, CP, state, events, actuators, carstate, carcontrol, carevents, carparams, controlsstate, sendcan, AM, LaC, start_time, lac_log, events_prev, cs_prev, last_frame):
   """Send actuators and hud commands to the car, send controlsstate and MPC logging"""
 
   CC = car.CarControl.new_message()
@@ -209,7 +210,12 @@ def data_send(sm, CS, CI, CP, state, events, actuators, carstate, carcontrol, ca
     cs_send.valid = CS.canValid
     cs_send.carState = CS
     cs_send.carState.events = events
-    carstate.send(cs_send.to_bytes())
+    cs_prev.append(cs_send.to_bytes())
+    if CS.camLeft.frame != last_frame and CS.camLeft.frame == CS.camFarLeft.frame:
+      carstate.send_multipart(cs_prev)
+      cs_prev.clear()
+
+  
 
   return CC, events_bytes
 
@@ -255,6 +261,8 @@ def controlsd_thread(gctx=None):
   soft_disable_timer = 0
   v_cruise_kph = 255
   events_prev = []
+  cs_prev = []
+  last_frame = 0
 
   sm['pathPlan'].sensorValid = True
   sm['pathPlan'].posenetValid = True
@@ -274,8 +282,10 @@ def controlsd_thread(gctx=None):
 
     # Publish data
     CC, events_prev = data_send(sm, CS, CI, CP, state, events, actuators, carstate, carcontrol, carevents, carparams,
-                    controlsstate, sendcan, AM, LaC, start_time, lac_log, events_prev)
+                    controlsstate, sendcan, AM, LaC, start_time, lac_log, events_prev, cs_prev, last_frame)
+    last_frame = CS.camLeft.frame
 
+    
 def main(gctx=None):
   controlsd_thread(gctx)
 

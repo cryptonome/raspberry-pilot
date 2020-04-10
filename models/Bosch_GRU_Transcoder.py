@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import os
+import joblib
 
-model_version = '013'
+model_version = '014'
 history_rows = 5
-inputs = 71
+inputs = 51
 
 if os.path.exists(os.path.expanduser('./models/gpu-model-%s.hdf5' % model_version)):
   os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -72,7 +73,7 @@ kegman = kegman_conf()
 if int(kegman.conf['fingerprint']) >= 0: 
   fingerprint[0,int(kegman.conf['fingerprint'])] = 1
 
-model.predict_on_batch([[model_input[:,:8]], [model_input[:,8:11]], [model_input[-1:,-60:-32]], [fingerprint], [model_input[:,-32:-16]], [model_input[:,-16:]]])
+model.predict_on_batch([[model_input[:,:8]], [model_input[:,8:11]], [model_input[-1:,-40:-32]], [fingerprint], [model_input[:,-32:-16]], [model_input[:,-16:]]])
 frame = 0
 dump_sock(gernModelInputs, True)
 
@@ -82,7 +83,7 @@ while 1:
   input_list = json.loads(model_input_array)
   model_input = np.asarray(input_list[:-1]).reshape(history_rows, inputs)
 
-  all_inputs = [[model_input[:,:-60-3]], [model_input[:,-60-3:-60]], [model_input[-1:,-60:-32]], [fingerprint], [model_input[:,-32:-16]], [model_input[:,-16:]]]
+  all_inputs = [[model_input[:,:8]], [model_input[:,8:11]], [model_input[-1:,-40:-32]], [fingerprint], [model_input[:,-32:-16]], [model_input[:,-16:]]]
 
   model_output = list(model.predict_on_batch(all_inputs)[0].astype('float'))
   model_output.append(input_list[-1])

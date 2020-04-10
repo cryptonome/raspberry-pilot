@@ -127,7 +127,7 @@ class LatControlPID(object):
       self.last_plan_time = path_plan.canTime
       self.avg_plan_age += 0.01 * (path_age - self.avg_plan_age)
 
-      self.c_prob = max(self.c_prob - 0.0333, path_plan.cProb)
+      self.c_prob = max(self.c_prob - 0.0333, min(self.c_prob + 0.1, path_plan.cProb))
       self.projected_lane_error = self.c_prob * self.poly_factor * sum(np.array(path_plan.cPoly) * self.polyReact) 
       #self.projected_lane_error = self.c_prob * self.poly_factor * (sum(path_plan.cPoly) + self.polyReact * 15 * (path_plan.cPoly[-1] - path_plan.cPoly[-2]))
       if abs(self.projected_lane_error) < abs(self.prev_projected_lane_error) and (self.projected_lane_error > 0) == (self.prev_projected_lane_error > 0):
@@ -176,7 +176,7 @@ class LatControlPID(object):
       rate_feedforward = (1.0 - self.angle_ff_ratio) * self.rate_ff_gain * self.damp_rate_steers_des
       steer_feedforward = float(v_ego) * (rate_feedforward + angle_feedforward * self.angle_ff_ratio * self.angle_ff_gain)
 
-      lane_compensation = self.projected_lane_error * max(0.5, min(1, 1 / (0.001 + abs(angle_steers_rate))))
+      lane_compensation = self.projected_lane_error #* max(0.5, min(1, 1 / (0.001 + abs(angle_steers_rate))))
       if (lane_compensation > self.path_error_comp and self.pid.p2 < 1 and self.pid.control < 1) or \
          (lane_compensation < self.path_error_comp and self.pid.p2 > -1 and self.pid.control > -1):
         self.path_error_comp += (lane_compensation - self.path_error_comp) / self.poly_smoothing
