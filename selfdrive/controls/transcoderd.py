@@ -158,7 +158,7 @@ while 1:
   left_center = descaled_output[:,1:2]
   right_center = descaled_output[:,2:3]
   #calc_center = (l_prob * descaled_output[:,1:2] + r_prob * descaled_output[:,2:3]) / (l_prob + r_prob + 0.0005)
-  calc_center = descaled_output[:,4:5] #* lr_prob + (1-lr_prob) * calc_center
+  calc_center = descaled_output[:,0:1]
 
   if abs(cs.steeringTorque) < 1200 and abs(cs.adjustedAngle) < 30:
     upper_limit = one_deg_per_sec * cs.vEgo * (max(2, min(5, abs(cs.steeringRate))) + accel_counter)
