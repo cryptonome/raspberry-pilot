@@ -13,10 +13,11 @@ if len(sys.argv) < 2 or sys.argv[1] == 0:
   min_time = 0  #(time.time() - 72 * 60 * 60) * 1000
 elif sys.argv[1] == '1':
   min_time = 0
-  destination = "192.168.1.180"
+  destination = "192.168.1.3"
 
 params = Params()
-user_id = params.get("PandaDongleId")
+user_id =  str(params.get("PandaDongleId"))
+user_id = user_id.replace("'","")
 context = zmq.Context()
 steerPush = context.socket(zmq.PUSH)
 steerPush.connect("tcp://" + destination + ":8594")
@@ -35,8 +36,9 @@ for cols in ["angle_offset,lateral_offset,wheel_speed_fl,wheel_speed_fr,wheel_sp
 
     try:
       result = json.loads(r.content)
+      result.update({"user_id": user_id})
+      steerPush.send_string(json.dumps(result))
       if len(result['results']) > 0:
-        steerPush.send_multipart((user_id, r.content))
         print(len(r.content))
         limit -= max_limit
         recordcount += len(result['results'][0]['series'][0]['values'])
