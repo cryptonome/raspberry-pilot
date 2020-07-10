@@ -101,8 +101,7 @@ echo "Changing the default python.."
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.7 2
 
-# install and start grafana and influxdb (installed but temporarily disabled to reduce resource usage)
-sudo apt install -y grafana
+# start grafana and influxdb (installed but temporarily disabled to reduce resource usage)
 sudo /bin/systemctl daemon-reload
 #sudo /bin/systemctl enable grafana-server
 #sudo service influxdb start
