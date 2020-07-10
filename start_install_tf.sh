@@ -73,28 +73,32 @@ ansible localhost -v -b -m apt -a "autoremove=yes"
 
 # install dependencies
 echo "Installing dependencies.."
-sudo apt install -y build-essential make automake python3.7-dev python3-pip libzmq3-dev python3-zmq
-sudo apt install -y openjdk-8-jdk automake autoconf zip unzip libtool swig libpng-dev zlib1g-dev pkg-config
-sudo apt install -y libhdf5-dev bzip2 clang git libarchive-dev  
-sudo apt install -y libffi-dev libglib2.0-0 libssl-dev libswscale-dev
-sudo apt install -y libusb-1.0-0 libusb-1.0-0-dev libzmq5-dev ocl-icd-libopencl1 ocl-icd-opencl-dev 
-sudo apt install -y opencl-headers wget checkinstall
-sudo apt install -y clang-3.8 libatlas-base-dev libopenblas-base libopenblas-dev gcc gfortran
-sudo apt install -y capnproto autotools-dev uuid-dev libsodium-dev valgrind
+sudo apt install -y build-essential make python3.7-dev python3-pip libzmq3-dev python3-zmq
+sudo apt install -y openjdk-8-jdk automake zip unzip libtool swig libpng-dev pkg-config
+sudo apt install -y libhdf5-dev clang libarchive-dev  
+sudo apt install -y libssl-dev libswscale-dev
+sudo apt install -y libusb-1.0-0 libusb-1.0-0-dev ocl-icd-libopencl1 ocl-icd-opencl-dev 
+sudo apt install -y opencl-headers checkinstall
+sudo apt install -y clang-3.8 libatlas-base-dev libopenblas-base libopenblas-dev gfortran
+sudo apt install -y capnproto uuid-dev libsodium-dev valgrind
 sudo apt install -y libusb-dev cmake libnewlib-arm-none-eabi libhdf5-serial-dev hdf5-tools smbclient
-sudo apt install -y influxdb influxdb-client apt-transport-https software-properties-common adduser libfontconfig1 dfu-util jq
+sudo apt install -y influxdb influxdb-client apt-transport-https adduser dfu-util jq
+# already installed:
+# autoconf automake zlib1g-dev bzip2 git libffi-dev libglib2.0-0 libzmq5-dev wget gcc autotools-dev libfontconfig1 software-properties-common
 
 # Ansible version for the future
 #ansible localhost -b -m apt -a "name=build-essential,make,automake,python3.7-dev,python3-pip,libzmq3-dev,python3-zmq"
-#ansible localhost -b -m apt -a "name=openjdk-8-jdk,automake,autoconf,zip,unzip,libtool,swig,libpng-dev,zlib1g-dev,pkg-config"
-#ansible localhost -b -m apt -a "name=libhdf5-dev,bzip2,clang,git,libarchive-dev"
-#ansible localhost -b -m apt -a "name=libffi-dev,libglib2.0-0,libssl-dev,libswscale-dev"
-#ansible localhost -b -m apt -a "name=libusb-1.0-0,libusb-1.0-0-dev,libzmq5-dev,ocl-icd-libopencl1,ocl-icd-opencl-dev"
-#ansible localhost -b -m apt -a "name=opencl-headers,wget,checkinstall"
-#ansible localhost -b -m apt -a "name=libatlas-base-dev,libopenblas-base,libopenblas-dev,gcc,gfortran"
-#ansible localhost -b -m apt -a "name=capnproto,autotools-dev,uuid-dev,libsodium-dev,valgrind"
+#ansible localhost -b -m apt -a "name=openjdk-8-jdk,automake,zip,unzip,libtool,swig,libpng-dev,pkg-config"
+#ansible localhost -b -m apt -a "name=libhdf5-dev,clang,libarchive-dev"
+#ansible localhost -b -m apt -a "name=libssl-dev,libswscale-dev"
+#ansible localhost -b -m apt -a "name=libusb-1.0-0,libusb-1.0-0-dev,ocl-icd-libopencl1,ocl-icd-opencl-dev"
+#ansible localhost -b -m apt -a "name=opencl-headers,checkinstall"
+#ansible localhost -b -m apt -a "name=libatlas-base-dev,libopenblas-base,libopenblas-dev,gfortran"
+#ansible localhost -b -m apt -a "name=capnproto,uuid-dev,libsodium-dev,valgrind"
 #ansible localhost -b -m apt -a "name=libusb-dev,cmake,libnewlib-arm-none-eabi,libhdf5-serial-dev,hdf5-tools,smbclient"
-#ansible localhost -b -m apt -a "name=influxdb,influxdb-client,apt-transport-https,software-properties-common,adduser,libfontconfig1,dfu-util,jq"
+#ansible localhost -b -m apt -a "name=influxdb,influxdb-client,apt-transport-https,adduser,dfu-util,jq"
+# already installed:
+# autoconf automake zlib1g-dev bzip2 git libffi-dev libglib2.0-0 libzmq5-dev wget gcc autotools-dev libfontconfig1 software-properties-common
 
 # change default python
 echo "Changing the default python.."
