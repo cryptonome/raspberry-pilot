@@ -77,7 +77,7 @@ sudo apt install -y build-essential make automake python3.7-dev python3-pip jq
 sudo apt install -y openjdk-8-jdk automake autoconf zip unzip libtool swig libpng-dev zlib1g-dev pkg-config
 sudo apt install -y libhdf5-dev bzip2 clang git libarchive-dev  
 sudo apt install -y libffi-dev libglib2.0-0 libssl-dev libswscale-dev
-sudo apt install -y libusb-1.0-0 lib-1.0-0-dev libzmq5-dev ocl-icd-libopencl1 ocl-icd-opencl-dev 
+sudo apt install -y libusb-1.0-0 libusb-1.0-0-dev libzmq5-dev ocl-icd-libopencl1 ocl-icd-opencl-dev 
 sudo apt install -y opencl-headers wget checkinstall
 sudo apt install -y clang-3.8 libatlas-base-dev libopenblas-base libopenblas-dev gcc gfortran
 sudo apt install -y capnproto autotools-dev uuid-dev libsodium-dev valgrind
