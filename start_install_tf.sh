@@ -89,7 +89,7 @@ sudo apt install -y influxdb influxdb-client apt-transport-https software-proper
 #ansible localhost -b -m apt -a "name=openjdk-8-jdk,automake,autoconf,zip,unzip,libtool,swig,libpng-dev,zlib1g-dev,pkg-config"
 #ansible localhost -b -m apt -a "name=libhdf5-dev,bzip2,clang,git,libarchive-dev"
 #ansible localhost -b -m apt -a "name=libffi-dev,libglib2.0-0,libssl-dev,libswscale-dev"
-#ansible localhost -b -m apt -a "name=libusb-1.0-0,lib-1.0-0-dev,libzmq5-dev,ocl-icd-libopencl1,ocl-icd-opencl-dev"
+#ansible localhost -b -m apt -a "name=libusb-1.0-0,libusb-1.0-0-dev,libzmq5-dev,ocl-icd-libopencl1,ocl-icd-opencl-dev"
 #ansible localhost -b -m apt -a "name=opencl-headers,wget,checkinstall"
 #ansible localhost -b -m apt -a "name=libatlas-base-dev,libopenblas-base,libopenblas-dev,gcc,gfortran"
 #ansible localhost -b -m apt -a "name=capnproto,autotools-dev,uuid-dev,libsodium-dev,valgrind"
