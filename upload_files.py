@@ -64,10 +64,10 @@ for file in upload_list:
             os.remove('/data/upload/%s' % file_to_delete)
           else:
             print(" Oops!  status_code: %s    NOT successful with file: %s" % (str(return_data['statuscode']), file_to_delete))
-          file_count -= 1
       else:
         os.remove('/data/upload/%s' % filename)
         print("empty file deleted:  %s" % filename)
+      file_count -= 1
 
 for i in range(len(file_list)):
   reply = dataSub.recv_multipart()

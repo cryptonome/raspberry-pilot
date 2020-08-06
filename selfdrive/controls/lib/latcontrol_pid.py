@@ -159,9 +159,9 @@ class LatControlPID(object):
       self.avg_plan_age += 0.01 * (path_age - self.avg_plan_age)
       self.fast_angles = np.array(path_plan.fastAngles)
       self.c_prob = path_plan.cProb
-      self.projected_lane_error = (v_ego/30) * self.c_prob * self.poly_factor * sum(np.array(path_plan.cPoly))
+      self.projected_lane_error = self.c_prob * self.poly_factor * sum(np.array(path_plan.cPoly))
       if blinker_on or abs(self.projected_lane_error) < abs(self.prev_projected_lane_error) and (self.projected_lane_error > 0) == (self.prev_projected_lane_error > 0):
-        self.projected_lane_error *= gernterp(angle_steers - path_plan.angleOffset, [1, 4], [0.25, 1.0])
+        self.projected_lane_error *= gernterp(angle_steers - path_plan.angleOffset, [1, 4], [0.1, 1.0])
       self.prev_projected_lane_error = self.projected_lane_error
       self.angle_index = max(0., 100. * (self.react_mpc + path_age))
     else:
