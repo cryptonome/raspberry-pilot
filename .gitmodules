@@ -1,3 +1,6 @@
 [submodule "opendbc"]
 	path = opendbc
 	url = https://github.com/commaai/opendbc.git
+[submodule "cereal"]
+	path = cereal
+	url = https://github.com/commaai/cereal.git
