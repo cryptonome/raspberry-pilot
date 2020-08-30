@@ -152,8 +152,6 @@ env = Environment(
     "#phonelibs/snpe/include",
     "#phonelibs/nanovg",
     "#selfdrive/common",
-    "#selfdrive/camerad",
-    "#selfdrive/camerad/include",
     "#selfdrive/loggerd/include",
     "#selfdrive/modeld",
     "#selfdrive/sensord",
@@ -293,23 +291,17 @@ SConscript(['common/kalman/SConscript'])
 SConscript(['common/transformations/SConscript'])
 SConscript(['phonelibs/SConscript'])
 
-SConscript(['selfdrive/camerad/SConscript'])
-SConscript(['selfdrive/modeld/SConscript'])
-
 SConscript(['selfdrive/controls/lib/cluster/SConscript'])
 SConscript(['selfdrive/controls/lib/lateral_mpc/SConscript'])
 SConscript(['selfdrive/controls/lib/longitudinal_mpc/SConscript'])
 SConscript(['selfdrive/controls/lib/longitudinal_mpc_model/SConscript'])
 
 SConscript(['selfdrive/boardd/SConscript'])
-SConscript(['selfdrive/proclogd/SConscript'])
-SConscript(['selfdrive/clocksd/SConscript'])
 
 SConscript(['selfdrive/loggerd/SConscript'])
 
 SConscript(['selfdrive/locationd/SConscript'])
 SConscript(['selfdrive/locationd/models/SConscript'])
-SConscript(['selfdrive/sensord/SConscript'])
 
 if arch != "Darwin":
   SConscript(['selfdrive/logcatd/SConscript'])
