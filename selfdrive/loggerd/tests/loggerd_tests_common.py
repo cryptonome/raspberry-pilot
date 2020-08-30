@@ -28,16 +28,27 @@ def create_random_file(file_path, size_mb, lock=False):
         os.remove(lock_path)
 
 class MockResponse():
-  def __init__(self, text):
+  def __init__(self, text, status_code):
     self.text = text
+    self.status_code = status_code
 
 class MockApi():
   def __init__(self, dongle_id):
     pass
 
   def get(self, *args, **kwargs):
-    return MockResponse('{"url": "http://localhost/does/not/exist", "headers": {}}')
-  
+    return MockResponse('{"url": "http://localhost/does/not/exist", "headers": {}}', 200)
+
+  def get_token(self):
+    return "fake-token"
+
+class MockApiIgnore():
+  def __init__(self, dongle_id):
+    pass
+
+  def get(self, *args, **kwargs):
+    return MockResponse('', 412)
+
   def get_token(self):
     return "fake-token"
 
@@ -46,7 +57,7 @@ class MockParams():
     self.params = {
       "DongleId": b"0000000000000000",
       "IsUploadRawEnabled": b"1",
-      "IsUploadVideoOverCellularEnabled": b"1"
+      "IsOffroad": b"1",
     }
 
   def get(self, k):
@@ -55,6 +66,9 @@ class MockParams():
 class UploaderTestCase(unittest.TestCase):
   f_type = "UNKNOWN"
 
+  def set_ignore(self):
+    uploader.Api = MockApiIgnore
+
   def setUp(self):
     self.root = tempfile.mkdtemp()
     uploader.ROOT = self.root  # Monkey patch root dir
@@ -62,7 +76,7 @@ class UploaderTestCase(unittest.TestCase):
     uploader.Params = MockParams
     uploader.fake_upload = 1
     uploader.is_on_hotspot = lambda *args: False
-    uploader.is_on_wifi = lambda *args: False
+    uploader.is_on_wifi = lambda *args: True
     self.seg_num = random.randint(1, 300)
     self.seg_format = "2019-04-18--12-52-54--{}"
     self.seg_format2 = "2019-05-18--11-22-33--{}"

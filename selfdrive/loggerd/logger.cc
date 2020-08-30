@@ -17,6 +17,21 @@
 
 #include "logger.h"
 
+#include <capnp/serialize.h>
+#include "cereal/gen/cpp/log.capnp.h"
+
+static void log_sentinel(LoggerState *s, cereal::Sentinel::SentinelType type) {
+  capnp::MallocMessageBuilder msg;
+  auto event = msg.initRoot<cereal::Event>();
+  event.setLogMonoTime(nanos_since_boot());
+  auto sen = event.initSentinel();
+  sen.setType(type);
+  auto words = capnp::messageToFlatArray(msg);
+  auto bytes = words.asBytes();
+
+  logger_log(s, bytes.begin(), bytes.size(), true);
+}
+
 static int mkpath(char* file_path) {
   assert(file_path && *file_path);
   char* p;
@@ -117,14 +132,31 @@ static LoggerHandle* logger_open(LoggerState *s, const char* root_path) {
   return h;
 fail:
   LOGE("logger failed to open files");
-  if (h->qlog_file) fclose(h->qlog_file);
-  if (h->log_file) fclose(h->log_file);
+  if (h->bz_file) {
+    BZ2_bzWriteClose(&bzerror, h->bz_file, 0, NULL, NULL);
+    h->bz_file = NULL;
+  }
+  if (h->bz_qlog) {
+    BZ2_bzWriteClose(&bzerror, h->bz_qlog, 0, NULL, NULL);
+    h->bz_qlog = NULL;
+  }
+  if (h->qlog_file) {
+    fclose(h->qlog_file);
+    h->qlog_file = NULL;
+  }
+  if (h->log_file) {
+    fclose(h->log_file);
+    h->log_file = NULL;
+  }
   return NULL;
 }
 
 int logger_next(LoggerState *s, const char* root_path,
                             char* out_segment_path, size_t out_segment_path_len,
                             int* out_part) {
+  bool is_start_of_route = !s->cur_handle;
+  if (!is_start_of_route) log_sentinel(s, cereal::Sentinel::SentinelType::END_OF_SEGMENT);
+
   pthread_mutex_lock(&s->lock);
   s->part++;
 
@@ -147,6 +179,8 @@ int logger_next(LoggerState *s, const char* root_path,
   }
 
   pthread_mutex_unlock(&s->lock);
+
+  log_sentinel(s, is_start_of_route ? cereal::Sentinel::SentinelType::START_OF_ROUTE : cereal::Sentinel::SentinelType::START_OF_SEGMENT);
   return 0;
 }
 
@@ -171,6 +205,8 @@ void logger_log(LoggerState *s, uint8_t* data, size_t data_size, bool in_qlog) {
 }
 
 void logger_close(LoggerState *s) {
+  log_sentinel(s, cereal::Sentinel::SentinelType::END_OF_ROUTE);
+
   pthread_mutex_lock(&s->lock);
   free(s->init_data);
   if (s->cur_handle) {
@@ -206,8 +242,12 @@ void lh_close(LoggerHandle* h) {
       BZ2_bzWriteClose(&bzerror, h->bz_qlog, 0, NULL, NULL);
       h->bz_qlog = NULL;
     }
-    if (h->qlog_file) fclose(h->qlog_file);
+    if (h->qlog_file) {
+      fclose(h->qlog_file);
+      h->qlog_file = NULL;
+    }
     fclose(h->log_file);
+    h->log_file = NULL;
     unlink(h->lock_path);
     pthread_mutex_unlock(&h->lock);
     pthread_mutex_destroy(&h->lock);
