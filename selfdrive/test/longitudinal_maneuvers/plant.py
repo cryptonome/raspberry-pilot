@@ -10,7 +10,7 @@ from opendbc import DBC_PATH
 
 from common.realtime import Ratekeeper
 from selfdrive.config import Conversions as CV
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from selfdrive.services import service_list
 from selfdrive.car import crc8_pedal
 from selfdrive.car.honda.hondacan import fix

@@ -60,7 +60,7 @@ ThermalStatus = cereal.log.ThermalData.ThermalStatus
 
 from selfdrive.services import service_list
 from selfdrive.swaglog import cloudlog
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from selfdrive.registration import register
 from selfdrive.version import version, dirty
 import selfdrive.crash as crash

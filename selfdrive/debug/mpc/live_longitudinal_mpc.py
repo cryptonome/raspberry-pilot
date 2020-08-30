@@ -5,7 +5,7 @@ matplotlib.use('TkAgg')
 
 import sys
 from selfdrive.services import service_list
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 import numpy as np
 import matplotlib.pyplot as plt
 

@@ -11,7 +11,7 @@ from cereal import car
 
 import selfdrive.manager as manager
 from selfdrive.services import service_list
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from common.params import Params
 from common.basedir import BASEDIR
 from selfdrive.car.fingerprints import all_known_cars

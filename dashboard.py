@@ -6,7 +6,7 @@ import os
 import sys
 import json
 from cereal import log, car
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from selfdrive.services import service_list
 from common.params import Params
 from common.profiler import Profiler

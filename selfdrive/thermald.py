@@ -12,7 +12,7 @@ from common.numpy_fast import clip
 from common.filter_simple import FirstOrderFilter
 from selfdrive.version import terms_version, training_version
 from selfdrive.swaglog import cloudlog
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from selfdrive.services import service_list
 from selfdrive.loggerd.config import get_available_percent
 

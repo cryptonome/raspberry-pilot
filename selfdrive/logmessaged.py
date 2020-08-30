@@ -2,7 +2,7 @@
 import zmq
 from logentries import LogentriesHandler
 from selfdrive.services import service_list
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 
 def main(gctx=None):
   # setup logentries. we forward log messages to it

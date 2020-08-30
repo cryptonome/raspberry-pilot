@@ -13,7 +13,7 @@ else:
 from cereal import car, log
 from selfdrive.car.car_helpers import get_car
 import selfdrive.manager as manager
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from common.params import Params
 from selfdrive.services import service_list
 from collections import namedtuple

@@ -5,7 +5,7 @@ from common.params import Params
 from common.basedir import BASEDIR
 from common.fingerprints import eliminate_incompatible_cars, all_known_cars
 from selfdrive.swaglog import cloudlog
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 
 
 def get_startup_alert(car_recognized, controller_available):
