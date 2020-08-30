@@ -6,20 +6,13 @@ import subprocess
 import multiprocessing
 from cffi import FFI
 
-# Build and load cython module
-import pyximport
-installer = pyximport.install(inplace=True, build_dir='/tmp')
-from common.clock import monotonic_time, sec_since_boot  # pylint: disable=no-name-in-module, import-error
-pyximport.uninstall(*installer)
-assert monotonic_time
-assert sec_since_boot
+from common.hardware import ANDROID
+from common.common_pyx import sec_since_boot  # pylint: disable=no-name-in-module, import-error
 
 
 # time step for each process
 DT_CTRL = 0.01  # controlsd
-DT_PLAN = 0.05  # mpc
 DT_MDL = 0.05  # model
-DT_RDR = 0.05  # radar
 DT_DMON = 0.1  # driver monitoring
 DT_TRML = 0.5  # thermald and manager
 
@@ -28,11 +21,7 @@ ffi = FFI()
 ffi.cdef("long syscall(long number, ...);")
 libc = ffi.dlopen(None)
 
-
-def set_realtime_priority(level):
-  if os.getuid() != 0:
-    print("not setting priority, not root")
-    return
+def _get_tid():
   if platform.machine() == "x86_64":
     NR_gettid = 186
   elif platform.machine() == "aarch64":
@@ -40,8 +29,25 @@ def set_realtime_priority(level):
   else:
     raise NotImplementedError
 
-  tid = libc.syscall(NR_gettid)
-  return subprocess.call(['chrt', '-f', '-p', str(level), str(tid)])
+  return libc.syscall(NR_gettid)
+
+
+def set_realtime_priority(level):
+  if os.getuid() != 0:
+    print("not setting priority, not root")
+    return
+
+  return subprocess.call(['chrt', '-f', '-p', str(level), str(_get_tid())])
+
+def set_core_affinity(core):
+  if os.getuid() != 0:
+    print("not setting affinity, not root")
+    return
+
+  if ANDROID:
+    return subprocess.call(['taskset', '-p', str(core), str(_get_tid())])
+  else:
+    return -1
 
 
 class Ratekeeper():
