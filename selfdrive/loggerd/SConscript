@@ -1,9 +1,9 @@
-Import('env', 'arch', 'cereal', 'messaging', 'common', 'visionipc')
+Import('env', 'arch', 'cereal', 'messaging', 'common')
 
 src = ['loggerd.cc', 'logger.cc']
 libs = ['zmq', 'czmq', 'capnp', 'kj', 'z',
   'avformat', 'avcodec', 'swscale', 'avutil',
-  'yuv', 'bz2', common, cereal, messaging, visionipc]
+  'yuv', 'bz2', common, cereal, messaging]
 
 if arch == "aarch64":
   src += ['encoder.c', 'raw_logger.cc']
