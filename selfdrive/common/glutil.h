@@ -4,7 +4,7 @@
 #ifdef __APPLE__
   #include <OpenGL/gl3.h>
 #else
-  #include <GLES/gl.h>
+  #include <GLES3/gl3.h>
 #endif
 
 #ifdef __cplusplus
