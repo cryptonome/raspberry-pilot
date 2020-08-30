@@ -1,25 +1,18 @@
-import subprocess
-from distutils.core import Extension, setup  # pylint: disable=import-error,no-name-in-module
-
+from distutils.core import Extension, setup
 from Cython.Build import cythonize
 
 from common.cython_hacks import BuildExtWithoutPlatformSuffix
 
-PHONELIBS = '../../phonelibs'
-
-ARCH = subprocess.check_output(["uname", "-m"], encoding='utf8').rstrip()  # pylint: disable=unexpected-keyword-arg
-ARCH_DIR = 'x64' if ARCH == "x86_64" else 'aarch64'
+libraries = ['can_list_to_can_capnp', 'capnp', 'kj']
 
 setup(name='Boardd API Implementation',
       cmdclass={'build_ext': BuildExtWithoutPlatformSuffix},
       ext_modules=cythonize(
         Extension(
           "boardd_api_impl",
-          libraries=[':libcan_list_to_can_capnp.a', ':libcapnp.a', ':libcapnp.a', ':libkj.a'],
+          libraries=libraries,
           library_dirs=[
             './',
-            PHONELIBS + '/capnp-cpp/' + ARCH_DIR + '/lib/',
-            PHONELIBS + '/capnp-c/' + ARCH_DIR + '/lib/'
           ],
           sources=['boardd_api_impl.pyx'],
           language="c++",

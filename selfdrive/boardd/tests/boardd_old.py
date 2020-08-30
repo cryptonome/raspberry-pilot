@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
+# pylint: skip-file
 
-# This file is not used by OpenPilot. Only boardd.cc is used.
+# This file is not used by openpilot. Only boardd.cc is used.
 # The python version is slower, but has more options for development.
 
 # TODO: merge the extra functionalities of this file (like MOCK) in boardd.c and
@@ -10,9 +11,8 @@ import os
 import struct
 import time
 
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from common.realtime import Ratekeeper
-from selfdrive.services import service_list
 from selfdrive.swaglog import cloudlog
 from selfdrive.boardd.boardd import can_capnp_to_can_list
 from cereal import car
@@ -22,14 +22,13 @@ SafetyModel = car.CarParams.SafetyModel
 # USB is optional
 try:
   import usb1
-  from usb1 import USBErrorIO, USBErrorOverflow  #pylint: disable=no-name-in-module
+  from usb1 import USBErrorIO, USBErrorOverflow  # pylint: disable=no-name-in-module
 except Exception:
   pass
 
 # *** serialization functions ***
 def can_list_to_can_capnp(can_msgs, msgtype='can'):
-  dat = messaging.new_message()
-  dat.init(msgtype, len(can_msgs))
+  dat = messaging.new_message(msgtype, len(can_msgs))
   for i, can_msg in enumerate(can_msgs):
     if msgtype == 'sendcan':
       cc = dat.sendcan[i]
@@ -46,20 +45,20 @@ def can_list_to_can_capnp(can_msgs, msgtype='can'):
 def can_health():
   while 1:
     try:
-      dat = handle.controlRead(usb1.TYPE_VENDOR | usb1.RECIPIENT_DEVICE, 0xd2, 0, 0, 0x10)
+      dat = handle.controlRead(usb1.TYPE_VENDOR | usb1.RECIPIENT_DEVICE, 0xd2, 0, 0, 0x16)
       break
     except (USBErrorIO, USBErrorOverflow):
       cloudlog.exception("CAN: BAD HEALTH, RETRYING")
-  v, i, started = struct.unpack("IIB", dat[0:9])
-  # TODO: units
-  return {"voltage": v, "current": i, "started": bool(started)}
+  v, i = struct.unpack("II", dat[0:8])
+  ign_line, ign_can = struct.unpack("BB", dat[20:22])
+  return {"voltage": v, "current": i, "ignition_line": bool(ign_line), "ignition_can": bool(ign_can)}
 
 def __parse_can_buffer(dat):
   ret = []
   for j in range(0, len(dat), 0x10):
     ddat = dat[j:j+0x10]
     f1, f2 = struct.unpack("II", ddat[0:8])
-    ret.append((f1 >> 21, f2>>16, ddat[8:8+(f2&0xF)], (f2>>4)&0xFF))
+    ret.append((f1 >> 21, f2 >> 16, ddat[8:8 + (f2 & 0xF)], (f2 >> 4) & 0xFF))
   return ret
 
 def can_send_many(arr):
@@ -111,8 +110,8 @@ def boardd_mock_loop():
   can_init()
   handle.controlWrite(0x40, 0xdc, SafetyModel.allOutput, 0, b'')
 
-  logcan = messaging.sub_sock(service_list['can'].port)
-  sendcan = messaging.pub_sock(service_list['sendcan'].port)
+  logcan = messaging.sub_sock('can')
+  sendcan = messaging.pub_sock('sendcan')
 
   while 1:
     tsc = messaging.drain_sock(logcan, wait_for_one=True)
@@ -140,7 +139,7 @@ def boardd_test_loop():
   can_init()
   cnt = 0
   while 1:
-    can_send_many([[0xbb,0,"\xaa\xaa\xaa\xaa",0], [0xaa,0,"\xaa\xaa\xaa\xaa"+struct.pack("!I", cnt),1]])
+    can_send_many([[0xbb, 0, "\xaa\xaa\xaa\xaa", 0], [0xaa, 0, "\xaa\xaa\xaa\xaa"+struct.pack("!I", cnt), 1]])
     #can_send_many([[0xaa,0,"\xaa\xaa\xaa\xaa",0]])
     #can_send_many([[0xaa,0,"\xaa\xaa\xaa\xaa",1]])
     # recv @ 100hz
@@ -150,32 +149,32 @@ def boardd_test_loop():
     cnt += 1
 
 # *** main loop ***
-def boardd_loop(rate=200):
+def boardd_loop(rate=100):
   rk = Ratekeeper(rate)
 
   can_init()
 
   # *** publishes can and health
-  logcan = messaging.pub_sock(service_list['can'].port)
-  health_sock = messaging.pub_sock(service_list['health'].port)
+  logcan = messaging.pub_sock('can')
+  health_sock = messaging.pub_sock('health')
 
   # *** subscribes to can send
-  sendcan = messaging.sub_sock(service_list['sendcan'].port)
+  sendcan = messaging.sub_sock('sendcan')
 
   # drain sendcan to delete any stale messages from previous runs
   messaging.drain_sock(sendcan)
 
   while 1:
-    # health packet @ 1hz
-    if (rk.frame%rate) == 0:
+    # health packet @ 2hz
+    if (rk.frame % (rate // 2)) == 0:
       health = can_health()
-      msg = messaging.new_message()
-      msg.init('health')
+      msg = messaging.new_message('health')
 
       # store the health to be logged
       msg.health.voltage = health['voltage']
       msg.health.current = health['current']
-      msg.health.started = health['started']
+      msg.health.ignitionLine = health['ignition_line']
+      msg.health.ignitionCan = health['ignition_can']
       msg.health.controlsAllowed = True
 
       health_sock.send(msg.to_bytes())
@@ -197,15 +196,15 @@ def boardd_loop(rate=200):
     rk.keep_time()
 
 # *** main loop ***
-def boardd_proxy_loop(rate=200, address="192.168.2.251"):
+def boardd_proxy_loop(rate=100, address="192.168.2.251"):
   rk = Ratekeeper(rate)
 
   can_init()
 
   # *** subscribes can
-  logcan = messaging.sub_sock(service_list['can'].port, addr=address)
+  logcan = messaging.sub_sock('can', addr=address)
   # *** publishes to can send
-  sendcan = messaging.pub_sock(service_list['sendcan'].port)
+  sendcan = messaging.pub_sock('sendcan')
 
   # drain sendcan to delete any stale messages from previous runs
   messaging.drain_sock(sendcan)
@@ -232,7 +231,7 @@ def boardd_proxy_loop(rate=200, address="192.168.2.251"):
 
     rk.keep_time()
 
-def main(gctx=None):
+def main():
   if os.getenv("MOCK") is not None:
     boardd_mock_loop()
   elif os.getenv("PROXY") is not None:
