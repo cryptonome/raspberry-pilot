@@ -328,3 +328,4 @@ static inline __s32 i2c_smbus_block_process_call(int file, __u8 command,
 
 
 #endif /* _LINUX_I2C_DEV_H */
+
