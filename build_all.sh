@@ -3,7 +3,7 @@
 cd cereal
 make
 cd ..
-cd selfdrive/can
+cd opendbc/can
 make clean
 PYTHONPATH=~/raspilot make 
 cd ..
