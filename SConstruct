@@ -273,16 +273,14 @@ else:
 Export('cereal', 'messaging')
 
 SConscript(['selfdrive/common/SConscript'])
-Import('_common', '_visionipc', '_gpucommon', '_gpu_libs')
+Import('_common')
 
 if SHARED:
-  common, visionipc, gpucommon = abspath(common), abspath(visionipc), abspath(gpucommon)
+  common = abspath(common)
 else:
   common = [_common, 'json11']
-  visionipc = _visionipc
-  gpucommon = [_gpucommon] + _gpu_libs
 
-Export('common', 'visionipc', 'gpucommon')
+Export('common')
 
 SConscript(['opendbc/can/SConscript'])
 
