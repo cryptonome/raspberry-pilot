@@ -3,7 +3,7 @@ from cereal import car
 from common.params import Params
 #from common.vin import get_vin, VIN_UNKNOWN
 from common.basedir import BASEDIR
-from common.fingerprints import eliminate_incompatible_cars, all_known_cars
+from selfdrive.car.fingerprints import eliminate_incompatible_cars, all_known_cars
 from selfdrive.swaglog import cloudlog
 import cereal.messaging as messaging
 
