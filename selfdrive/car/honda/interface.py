@@ -9,7 +9,8 @@ from common.realtime import sec_since_boot, DT_CTRL
 from selfdrive.swaglog import cloudlog
 from common.params import Params
 from selfdrive.config import Conversions as CV
-from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET, get_events
+from selfdrive.controls.lib.events import ET
+#from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET, get_events
 #from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.honda.carstate import CarState, get_can_parser, get_cam_can_parser
 from selfdrive.car.honda.values import CruiseButtons, CAR, HONDA_BOSCH, AUDIO_HUD, VISUAL_HUD, CAMERA_MSGS
