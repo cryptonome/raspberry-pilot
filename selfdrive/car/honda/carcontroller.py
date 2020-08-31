@@ -5,7 +5,7 @@ from common.numpy_fast import clip
 from selfdrive.car import create_gas_command
 from selfdrive.car.honda import hondacan
 from selfdrive.car.honda.values import AH, CruiseButtons, CAR
-from selfdrive.can.packer import CANPacker
+from opendbc.can.packer import CANPacker
 from selfdrive.kegman_conf import kegman_conf
 
 kegman = kegman_conf()
