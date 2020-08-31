@@ -1,6 +1,7 @@
 #!/usr/bin/env python3 
 import capnp
 import time
+import os
 from cereal import car, log
 from common.numpy_fast import clip
 from common.params import Params
@@ -227,21 +228,25 @@ def controlsd_thread(gctx=None):
   # Pub Sockets
   profiler = Profiler(True, 'controls')
 
-  sendcan = messaging.pub_sock(service_list['sendcan'].port.to_bytes)
-  controlsstate = messaging.pub_sock(service_list['controlsState'].port.to_bytes)
+  pm = messaging.PubMaster(['sendcan', 'controlsState', 'carState',
+                                     'carControl', 'carEvents', 'carParams'])
+  can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100
+  can_sock = messaging.sub_sock('can', timeout=can_timeout)
+
+  sendcan = messaging.pub_sock('sendcan')
+  controlsstate = messaging.pub_sock('controlsState')
   carstate = None #messaging.pub_sock(service_list['carState'].port)
-  carcontrol = messaging.pub_sock(service_list['carControl'].port.to_bytes)
-  carevents = messaging.pub_sock(service_list['carEvents'].port.to_bytes)
-  carparams = messaging.pub_sock(service_list['carParams'].port.to_bytes)
+  carcontrol = messaging.pub_sock('carControl')
+  carevents = messaging.pub_sock('carEvents')
+  carparams = messaging.pub_sock('carParams')
 
   sm = messaging.SubMaster(['pathPlan','health','gpsLocationExternal'])
-  ##TODO RCP
-  can_sock = messaging.sub_sock(service_list['can'].port)
+
   hw_type = messaging.recv_one(sm.sock['health']).health.hwType
   is_panda_black = hw_type == log.HealthData.HwType.blackPanda  
   print("panda black: ", is_panda_black)
   wait_for_can(can_sock)
-  CI, CP = get_car(can_sock, sendcan, is_panda_black)
+  CI, CP = get_car(can_sock, pm.sock['sendcan'], is_panda_black)
   #logcan.close()
 
   # TODO: Use the logcan socket from above, but that will currenly break the tests
