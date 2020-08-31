@@ -9,11 +9,10 @@ import cereal.messaging as messaging
 from selfdrive.services import service_list
 from selfdrive.boardd.boardd import can_list_to_can_capnp
 from selfdrive.car.car_helpers import get_car, get_startup_alert
-from selfdrive.controls.lib.drive_helpers import get_events, \
-                                                 create_event, \
-                                                 EventTypes as ET, \
-                                                 update_v_cruise, \
+from selfdrive.controls.lib.drive_helpers import update_v_cruise, \
                                                  initialize_v_cruise
+from selfdrive.controls.lib.events import ET
+
 from selfdrive.controls.lib.latcontrol_pid import LatControlPID
 from selfdrive.controls.lib.laterald import Lateral
 from selfdrive.controls.lib.alertmanager import AlertManager
