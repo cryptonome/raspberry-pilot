@@ -27,6 +27,8 @@ if arch == "aarch64" and not os.path.isdir("/system"):
 webcam = bool(ARGUMENTS.get("use_webcam", 0))
 QCOM_REPLAY = arch == "aarch64" and os.getenv("QCOM_REPLAY") is not None
 
+phonelibs = os.getcwd()+'/phonelibs'
+
 if arch == "aarch64" or arch == "larch64":
   lenv = {
     "LD_LIBRARY_PATH": '/data/data/com.termux/files/usr/lib',
@@ -48,6 +50,8 @@ if arch == "aarch64" or arch == "larch64":
     "/system/vendor/lib64",
     "/system/comma/usr/lib",
     "#phonelibs/nanovg",
+    "#phonelibs/libyuv/lib",
+    "#phonelibs/bzip2",
   ]
 
   if arch == "larch64":
