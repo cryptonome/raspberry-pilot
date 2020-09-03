@@ -4,3 +4,6 @@
 [submodule "cereal"]
 	path = cereal
 	url = https://github.com/commaai/cereal.git
+[submodule "panda"]
+	path = panda
+	url = https://github.com/cryptonome/panda.git
