@@ -74,6 +74,8 @@ echo "Updating Ubuntu and removing unneeded packages.."
 ansible localhost -v -b -m apt -a "upgrade=full"
 ansible localhost -v -b -m apt -a "autoremove=yes"
 
+
+
 # install dependencies
 echo "Installing dependencies.."
 sudo apt install -y build-essential make python3.7-dev python3-pip libzmq3-dev python3-zmq
@@ -86,6 +88,7 @@ sudo apt install -y clang-3.8 libatlas-base-dev libopenblas-base libopenblas-dev
 sudo apt install -y capnproto uuid-dev libsodium-dev valgrind
 sudo apt install -y libusb-dev cmake libnewlib-arm-none-eabi libhdf5-serial-dev hdf5-tools smbclient
 sudo apt install -y influxdb influxdb-client apt-transport-https adduser dfu-util jq
+sudo apt install -y eigen3
 # already installed:
 # autoconf automake zlib1g-dev bzip2 git libffi-dev libglib2.0-0 libzmq5-dev wget gcc autotools-dev libfontconfig1 software-properties-common
 
@@ -107,6 +110,7 @@ sudo apt install -y influxdb influxdb-client apt-transport-https adduser dfu-uti
 echo "Changing the default python.."
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.7 2
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1
 
 # start grafana and influxdb (installed but temporarily disabled to reduce resource usage)
 sudo /bin/systemctl daemon-reload
