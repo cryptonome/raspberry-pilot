@@ -22,7 +22,7 @@
 sudo apt remove -y unattended-upgrades
 
 # Install Ansible to support the future direction
-sudo apt-add-repository -y ppa:ansible/ansible
+# sudo apt-add-repository -y ppa:ansible/ansible
 sudo apt update
 sudo apt install ansible -y
 

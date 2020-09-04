@@ -22,18 +22,23 @@ crontab -l
 (sudo crontab -l; echo "@reboot sleep 60; bash /home/ubuntu/raspilot/fix_niceness.sh";) | sudo crontab -
 sudo crontab -l
 
+
+echo "Building with scons"
+
+scons
+
+echo "Installing phonelibs into boot"
 sudo cp ~/raspilot/phonelibs/btcmd.txt /boot/firmware
 sudo cp ~/raspilot/phonelibs/usercfg.txt /boot/firmware/usercfg.txt
 sudo cp ~/raspilot/phonelibs/influxdb.conf /etc/influxdb/influxdb.conf
 
 sudo apt --fix-broken install -y
 sudo apt clean -y
-sudo bash phonelibs/install_capnp.sh
+#sudo bash phonelibs/install_capnp.sh
 
-sudo chown -R 1000:1000 ~/raspilot/node-red
-sudo docker run -it --network host -v /home/ubuntu/raspilot/node-red:/data --name nodered-raspilot nodered/node-red 
+#sudo chown -R 1000:1000 ~/raspilot/node-red
+#sudo docker run -it --network host -v /home/ubuntu/raspilot/node-red:/data --name nodered-raspilot nodered/node-red 
 
 #python3 -m pipenv --python 3.7
 #python3 -m pipenv install
 #sh build_all.sh
-scons
