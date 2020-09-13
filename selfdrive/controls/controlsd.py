@@ -5,7 +5,7 @@ from cereal import car, log
 from common.numpy_fast import clip
 from common.params import Params
 from common.profiler import Profiler
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from selfdrive.services import service_list
 from selfdrive.boardd.boardd import can_list_to_can_capnp
 from selfdrive.car.car_helpers import get_car, get_startup_alert

@@ -5,7 +5,7 @@ import signal
 from panda import Panda
 from multiprocessing import Pool
 
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from selfdrive.services import service_list
 from selfdrive.boardd.boardd import can_capnp_to_can_list
 

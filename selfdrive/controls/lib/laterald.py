@@ -5,7 +5,7 @@ import time
 import json
 import numpy as np
 import requests
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from selfdrive.kegman_conf import kegman_conf
 from selfdrive.services import service_list
 from cereal import log, car

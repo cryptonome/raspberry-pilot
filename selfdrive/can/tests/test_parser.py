@@ -5,7 +5,7 @@ import unittest
 
 import requests
 
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from selfdrive.can.parser import CANParser as CANParserNew
 from selfdrive.can.tests.parser_old import CANParser as CANParserOld
 from selfdrive.car.honda.carstate import get_can_signals

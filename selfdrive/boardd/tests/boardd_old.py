@@ -10,7 +10,7 @@ import os
 import struct
 import time
 
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from common.realtime import Ratekeeper
 from selfdrive.services import service_list
 from selfdrive.swaglog import cloudlog

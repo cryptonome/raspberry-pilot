@@ -4,7 +4,7 @@ from selfdrive.locationd.test import ublox
 from common import realtime
 from selfdrive.locationd.test.ubloxd import gen_raw, gen_solution
 import zmq
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from selfdrive.services import service_list
 
 

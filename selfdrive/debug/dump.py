@@ -7,7 +7,7 @@ from hexdump import hexdump
 from threading import Thread
 
 from cereal import log
-import selfdrive.messaging as messaging
+import cereal.messaging as messaging
 from selfdrive.services import service_list
 
 def run_server(socketio):
