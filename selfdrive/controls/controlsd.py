@@ -228,15 +228,15 @@ def controlsd_thread(gctx=None):
   # Pub Sockets
   profiler = Profiler(True, 'controls')
 
-  sendcan = messaging.pub_sock(service_list['sendcan'].port)
-  controlsstate = messaging.pub_sock(service_list['controlsState'].port)
-  carstate = None #messaging.pub_sock(service_list['carState'].port)
-  carcontrol = messaging.pub_sock(service_list['carControl'].port)
-  carevents = messaging.pub_sock(service_list['carEvents'].port)
-  carparams = messaging.pub_sock(service_list['carParams'].port)
+  sendcan = messaging.pub_sock('sendcan')
+  controlsstate = messaging.pub_sock('controlsState')
+  carstate = None #messaging.pub_sock('carState')
+  carcontrol = messaging.pub_sock('carControl')
+  carevents = messaging.pub_sock('carEvents')
+  carparams = messaging.pub_sock('carParams')
 
   sm = messaging.SubMaster(['pathPlan','health','gpsLocationExternal'])
-  can_sock = messaging.sub_sock(service_list['can'].port)
+  can_sock = messaging.sub_sock('can')
   hw_type = messaging.recv_one(sm.sock['health']).health.hwType
   is_panda_black = hw_type == log.HealthData.HwType.blackPanda  
   print("panda black: ", is_panda_black)

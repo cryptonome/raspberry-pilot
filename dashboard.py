@@ -47,9 +47,9 @@ context = zmq.Context()
 poller = zmq.Poller()
 vEgo = 0.0
 
-carState = messaging.sub_sock(service_list['carState'].port, conflate=False)
-pathPlan = messaging.sub_sock(service_list['pathPlan'].port, conflate=True)
-heartBeatSub = messaging.sub_sock(8597, addr=SERVER_ADDRESS, conflate=True)
+carState = messaging.sub_sock('carState', conflate=False)
+pathPlan = messaging.sub_sock('pathPlan', conflate=True)
+heartBeatSub = messaging.sub_sock('8597', addr=SERVER_ADDRESS, conflate=True)
 
 do_send_live = False
 serverPush = None   

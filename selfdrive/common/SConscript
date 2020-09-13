@@ -1,0 +1,18 @@
+Import('env', 'arch', 'SHARED', 'QCOM_REPLAY')
+
+if SHARED:
+  fxn = env.SharedLibrary
+else:
+  fxn = env.Library
+
+common_libs = ['params.cc', 'swaglog.cc', 'util.c', 'cqueue.c', 'gpio.cc', 'i2c.cc']
+
+_common = fxn('common', common_libs, LIBS="json11")
+
+files = [
+  'buffering.c',
+  'clutil.c',
+  'efd.c',
+]
+
+Export('_common')

@@ -35,4 +35,5 @@ sudo docker run -it --network host -v /home/ubuntu/raspilot/node-red:/data --nam
 
 #python3 -m pipenv --python 3.7
 #python3 -m pipenv install
-sh build_all.sh
+scons
+#sh build_all.sh

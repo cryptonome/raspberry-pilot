@@ -1,10 +1,22 @@
 #!/usr/bin/env python
 import os
-import zmq
 import time
 import json
 import joblib
 import numpy as np
+import cereal.messaging as messaging
+from cereal.messaging import drain_sock
+
+from selfdrive.kegman_conf import kegman_conf
+from selfdrive.services import service_list
+from selfdrive.car.honda.values import CAR
+from enum import Enum
+from cereal import log, car
+from setproctitle import setproctitle
+from common.params import Params, put_nonblocking
+from common.profiler import Profiler
+from tensorflow.python.keras.models import load_model 
+
 
 INPUTS = 78
 OUTPUTS = 9
@@ -17,15 +29,6 @@ vehicle_scaler = joblib.load(os.path.expanduser('models/GRU_MaxAbs_%d_vehicle_%s
 camera_standard = joblib.load(os.path.expanduser('models/GRU_Stand_%d_camera_%s.scaler' % (32, MODEL_VERSION)))
 camera_scaler = joblib.load(os.path.expanduser('models/GRU_MaxAbs_%d_camera_%s.scaler' % (32, MODEL_VERSION)))
 
-from selfdrive.kegman_conf import kegman_conf
-from selfdrive.services import service_list
-from selfdrive.car.honda.values import CAR
-from enum import Enum
-from cereal import log, car
-from setproctitle import setproctitle
-from common.params import Params, put_nonblocking
-from common.profiler import Profiler
-from tensorflow.python.keras.models import load_model 
 
 setproctitle('transcoderd')
 
@@ -70,35 +73,6 @@ MAX_CENTER_OPPOSE = np.reshape(np.arange(15) * 200, (OUTPUT_ROWS,1))
 
 lo_res_data = np.zeros((BATCH_SIZE,history_rows[-1], INPUTS-6))
 
-def dump_sock(sock, wait_for_one=False):
-  if wait_for_one:
-    sock.recv()
-  while 1:
-    try:
-      sock.recv(zmq.NOBLOCK)
-    except zmq.error.Again:
-      break
-
-def pub_sock(port, addr="*"):
-  context = zmq.Context.instance()
-  sock = context.socket(zmq.PUB)
-  sock.bind("tcp://%s:%d" % (addr, port))
-  return sock
-
-def sub_sock(port, poller=None, addr="127.0.0.1", conflate=False, timeout=None):
-  context = zmq.Context.instance()
-  sock = context.socket(zmq.SUB)
-  if conflate:
-    sock.setsockopt(zmq.CONFLATE, 1)
-  sock.connect("tcp://%s:%d" % (addr, port))
-  sock.setsockopt(zmq.SUBSCRIBE, b"")
-
-  if timeout is not None:
-    sock.RCVTIMEO = timeout
-
-  if poller is not None:
-    poller.register(sock, zmq.POLLIN)
-  return sock
 
 def project_error(cpoly):
   peaks = np.sort([np.argmin(cpoly[:,0]), np.argmax(cpoly[:,0])])
@@ -136,8 +110,8 @@ def update_calibration(calibration, inputs, cal_col, cs):
     calibration[i] += (cal_factor[i] * (inputs[cal_col[i]] - calibration[i]))
   return cal_factor
 
-gernPath = pub_sock(service_list['pathPlan'].port)
-carState = sub_sock(service_list['carState'].port, conflate=False)
+gernPath = messaging.pub_sock('pathPlan')
+carState = messaging.sub_sock('carState', conflate=False)
 
 frame_count = 1
 dashboard_count = 0
@@ -232,7 +206,7 @@ l_prob = 0.0
 r_prob = 0.0
 lateral_adjust = 0
 frame = 0
-dump_sock(carState, True)
+drain_sock(carState, True)
 
 calibration_items = ['angle_steers','lateral_accelleration','yaw_rate_can','angle_steers2','lateral_accelleration2','yaw_rate_can2','far_left_1','far_left_7','far_left_9','far_right_1','far_right_7','far_right_9','left_1','left_7','left_9','right_1','right_7','right_9']
 all_items = ['v_ego','angle_steers','lateral_accelleration','angle_rate', 'angle_rate_eps', 'yaw_rate_can','v_ego','long_accel', 'lane_width','angle_steers2','lateral_accelleration2','yaw_rate_can2','l_blinker','r_blinker',
