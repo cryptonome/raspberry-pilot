@@ -25,7 +25,7 @@ void panda_set_power(bool power){
   usleep(100*1000); // 100 ms
 
   err += gpio_set(GPIO_STM_RST_N, power);
-  assert(err == 0);
+  // Sassert(err == 0);
 #endif
 }
 
