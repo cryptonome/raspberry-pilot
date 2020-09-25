@@ -2,11 +2,10 @@
 	path = opendbc
 	url = https://github.com/cryptonome/opendbc.git
 	branch = messaging
-[submodule "cereal"]
-	path = cereal
-	url = https://github.com/cryptonome/cereal.git
-        branch = messaging
 [submodule "panda"]
 	path = panda
 	url = https://github.com/cryptonome/panda.git
 	branch = messaging
+[submodule "cereal"]
+	path = cereal
+	url = https://github.com/cryptonome/cereal.git
