@@ -26,7 +26,6 @@ from setproctitle import setproctitle
 from common.params import Params, put_nonblocking
 from common.profiler import Profiler
 from tensorflow.python.keras.models import load_model 
-import cereal.messaging as messaging
 
 setproctitle('transcoderd')
 
@@ -70,6 +69,27 @@ def dump_sock(sock, wait_for_one=False):
     except zmq.error.Again:
       break
 
+def pub_sock(port, addr="*"):
+  context = zmq.Context.instance()
+  sock = context.socket(zmq.PUB)
+  sock.bind("tcp://%s:%d" % (addr, port))
+  return sock
+
+def sub_sock(port, poller=None, addr="127.0.0.1", conflate=False, timeout=None):
+  context = zmq.Context.instance()
+  sock = context.socket(zmq.SUB)
+  if conflate:
+    sock.setsockopt(zmq.CONFLATE, 1)
+  sock.connect("tcp://%s:%d" % (addr, port))
+  sock.setsockopt(zmq.SUBSCRIBE, b"")
+
+  if timeout is not None:
+    sock.RCVTIMEO = timeout
+
+  if poller is not None:
+    poller.register(sock, zmq.POLLIN)
+  return sock
+
 def project_error(cpoly):
   peaks = np.sort([np.argmin(cpoly[:,0]), np.argmax(cpoly[:,0])])
   if cpoly[peaks[0],0] < cpoly[peaks[1],0]:
@@ -102,8 +122,8 @@ def update_calibration(calibration, inputs, cal_col, cs):
     calibration[i] += (cal_factor[i] * (inputs[cal_col[i]] - calibration[i]))
   return cal_factor
 
-gernPath = messaging.pub_sock(service_list['pathPlan'].port)
-carState = messaging.sub_sock(service_list['carState'].port, conflate=False)
+gernPath = pub_sock(service_list['pathPlan'].port)
+carState = sub_sock(service_list['carState'].port, conflate=False)
 
 frame_count = 1
 dashboard_count = 0

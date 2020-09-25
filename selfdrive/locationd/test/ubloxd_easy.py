@@ -1,23 +1,22 @@
-#!/usr/bin/env python3
-# type: ignore
-
+#!/usr/bin/env python
 import os
 from selfdrive.locationd.test import ublox
 from common import realtime
 from selfdrive.locationd.test.ubloxd import gen_raw, gen_solution
 import zmq
 import cereal.messaging as messaging
+from selfdrive.services import service_list
 
 
 unlogger = os.getenv("UNLOGGER") is not None   # debug prints
 
-def main():
+def main(gctx=None):
   poller = zmq.Poller()
 
-  gpsLocationExternal = messaging.pub_sock('gpsLocationExternal')
-  ubloxGnss = messaging.pub_sock('ubloxGnss')
+  gpsLocationExternal = messaging.pub_sock(service_list['gpsLocationExternal'].port)
+  ubloxGnss = messaging.pub_sock(service_list['ubloxGnss'].port)
 
-  # ubloxRaw = messaging.sub_sock('ubloxRaw', poller)
+  # ubloxRaw = messaging.sub_sock(service_list['ubloxRaw'].port, poller)
 
   # buffer with all the messages that still need to be input into the kalman
   while 1:
@@ -47,7 +46,7 @@ def main():
               raw.logMonoTime = int(realtime.sec_since_boot() * 1e9)
             ubloxGnss.send(raw.to_bytes())
         else:
-          print("INVALID MESSAGE")
+          print "INVALID MESSAGE"
 
 
 if __name__ == "__main__":
