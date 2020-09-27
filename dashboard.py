@@ -7,6 +7,8 @@ import sys
 import json
 from cereal import log, car
 import cereal.messaging as messaging
+import selfdrive.messagingzmq as messagingzmq
+
 from selfdrive.services import service_list
 from common.params import Params
 from common.profiler import Profiler
@@ -43,21 +45,23 @@ target_URL = 'http://%s:8086/write?db=carDB&%sprecision=ms' % (target_address, c
 #target_URL = 'http://192.168.137.1:8086/write?db=carDB&precision=ms' 
 print(target_URL)
 
-context = zmq.Context()
-poller = zmq.Poller()
+context = messaging.Context()
+poller = messaging.Poller()
+pollerzmq = zmq.Poller()
 vEgo = 0.0
 
 carState = messaging.sub_sock('carState', conflate=False)
 pathPlan = messaging.sub_sock('pathPlan', conflate=True)
-heartBeatSub = messaging.sub_sock('8597', addr=SERVER_ADDRESS, conflate=True)
+
+heartBeatSub = messagingzmq.sub_sock(8597, addr=SERVER_ADDRESS, conflate=True)
 
 do_send_live = False
 serverPush = None   
 tuneSub = None
      
-if pathPlan != None: poller.register(pathPlan, zmq.POLLIN)
-if carState != None: poller.register(carState, zmq.POLLIN)
-if heartBeatSub != None: poller.register(heartBeatSub, zmq.POLLIN)
+if pathPlan != None: poller.registerSocket(pathPlan)
+if carState != None: poller.registerSocket(carState)
+if heartBeatSub != None: pollerzmq.register(heartBeatSub, zmq.POLLIN)
 
 kegmanInsertString = ""
 serverCanFormatString="CANData,user=" + user_id + ",src=;pid=; d1=;i,d2=;i; ~"
