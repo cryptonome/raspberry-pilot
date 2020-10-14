@@ -117,7 +117,7 @@ void safety_setter_thread() {
 
 bool usb_connect() {
   try {
-    assert(panda == NULL);
+    // assert(panda == NULL);
     panda = new Panda();
   } catch (std::exception &e) {
     return false;
