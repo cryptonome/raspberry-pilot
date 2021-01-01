@@ -6,3 +6,6 @@
 	path = panda
 	url = https://github.com/cryptonome/panda.git
 	branch = messaging
+[submodule "cereal"]
+	path = cereal
+	url = https://github.com/cryptonome/cereal.git
