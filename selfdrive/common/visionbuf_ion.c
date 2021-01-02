@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <linux/ion.h>
 #include <CL/cl_ext.h>
-
+#include "common/clutil.h"
 #include <msm_ion.h>
 
 #include "visionbuf.h"
@@ -71,31 +71,23 @@ VisionBuf visionbuf_allocate(size_t len) {
   };
 }
 
-VisionBuf visionbuf_allocate_cl(size_t len, cl_device_id device_id, cl_context ctx, cl_mem *out_mem) {
-  VisionBuf r = visionbuf_allocate(len);
-  *out_mem = visionbuf_to_cl(&r, device_id, ctx);
-  r.buf_cl = *out_mem;
-  return r;
-}
+VisionBuf visionbuf_allocate_cl(size_t len, cl_device_id device_id, cl_context ctx) {
+  VisionBuf buf = visionbuf_allocate(len);
 
-cl_mem visionbuf_to_cl(const VisionBuf* buf, cl_device_id device_id, cl_context ctx) {
-  int err = 0;
-
-  assert(((uintptr_t)buf->addr % DEVICE_PAGE_SIZE_CL) == 0);
+  assert(((uintptr_t)buf.addr % DEVICE_PAGE_SIZE_CL) == 0);
 
   cl_mem_ion_host_ptr ion_cl = {0};
   ion_cl.ext_host_ptr.allocation_type = CL_MEM_ION_HOST_PTR_QCOM;
   ion_cl.ext_host_ptr.host_cache_policy = CL_MEM_HOST_UNCACHED_QCOM;
-  ion_cl.ion_filedesc = buf->fd;
-  ion_cl.ion_hostptr = buf->addr;
+  ion_cl.ion_filedesc = buf.fd;
+  ion_cl.ion_hostptr = buf.addr;
 
-  cl_mem mem = clCreateBuffer(ctx,
+  buf.buf_cl = CL_CHECK_ERR(clCreateBuffer(ctx,
                               CL_MEM_USE_HOST_PTR | CL_MEM_EXT_HOST_PTR_QCOM,
-                              buf->len, &ion_cl, &err);
-  assert(err == 0);
-
-  return mem;
+                              buf.len, &ion_cl, &err));
+  return buf;
 }
+
 
 void visionbuf_sync(const VisionBuf* buf, int dir) {
   int err;
@@ -139,7 +131,9 @@ void visionbuf_sync(const VisionBuf* buf, int dir) {
 }
 
 void visionbuf_free(const VisionBuf* buf) {
-  clReleaseMemObject(buf->buf_cl);
+  if (buf->buf_cl) {
+    CL_CHECK(clReleaseMemObject(buf->buf_cl));
+  }
   munmap(buf->addr, buf->mmap_len);
   close(buf->fd);
   struct ion_handle_data handle_data = {

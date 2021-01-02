@@ -1,53 +1,50 @@
 """Utilities for reading real time clocks and keeping soft real time constraints."""
+import gc
 import os
 import time
-import platform
-import subprocess
 import multiprocessing
-from cffi import FFI
 
-from common.hardware import ANDROID
-from common.common_pyx import sec_since_boot  # pylint: disable=no-name-in-module, import-error
+from common.clock import sec_since_boot  # pylint: disable=no-name-in-module, import-error
+from selfdrive.hardware import PC, TICI
 
 
 # time step for each process
 DT_CTRL = 0.01  # controlsd
 DT_MDL = 0.05  # model
-DT_DMON = 0.1  # driver monitoring
 DT_TRML = 0.5  # thermald and manager
 
+# driver monitoring
+if TICI:
+  DT_DMON = 0.05
+else:
+  DT_DMON = 0.1
 
-ffi = FFI()
-ffi.cdef("long syscall(long number, ...);")
-libc = ffi.dlopen(None)
 
-def _get_tid():
-  if platform.machine() == "x86_64":
-    NR_gettid = 186
-  elif platform.machine() == "aarch64":
-    NR_gettid = 178
-  else:
-    raise NotImplementedError
+class Priority:
+  # CORE 2
+  # - modeld = 55
+  # - camerad = 54
+  CTRL_LOW = 51 # plannerd & radard
 
-  return libc.syscall(NR_gettid)
+  # CORE 3
+  # - boardd = 55
+  CTRL_HIGH = 53
 
 
 def set_realtime_priority(level):
-  if os.getuid() != 0:
-    print("not setting priority, not root")
-    return
+  if not PC:
+    os.sched_setscheduler(0, os.SCHED_FIFO, os.sched_param(level))
 
-  return subprocess.call(['chrt', '-f', '-p', str(level), str(_get_tid())])
 
 def set_core_affinity(core):
-  if os.getuid() != 0:
-    print("not setting affinity, not root")
-    return
+  if not PC:
+    os.sched_setaffinity(0, [core,])
 
-  if ANDROID:
-    return subprocess.call(['taskset', '-p', str(core), str(_get_tid())])
-  else:
-    return -1
+
+def config_realtime_process(core, priority):
+  gc.disable()
+  set_realtime_priority(priority)
+  set_core_affinity(core)
 
 
 class Ratekeeper():

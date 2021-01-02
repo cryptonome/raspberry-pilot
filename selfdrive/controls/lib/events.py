@@ -259,22 +259,7 @@ EVENTS = {
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 15.),
   },
 
-  EventName.invalidGiraffeToyota: {
-    ET.PERMANENT: Alert(
-      "Unsupported Giraffe Configuration",
-      "Visit comma.ai/tg",
-      AlertStatus.normal, AlertSize.mid,
-      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
-  },
 
-  EventName.whitePandaUnsupported: {
-    ET.PERMANENT: Alert(
-      "White Panda Is No Longer Supported",
-      "Upgrade to comma two or black panda",
-      AlertStatus.normal, AlertSize.mid,
-      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
-    ET.NO_ENTRY: NoEntryAlert("White panda is no longer supported"),
-  },
 
   EventName.invalidLkasSetting: {
     ET.PERMANENT: Alert(
@@ -530,13 +515,6 @@ EVENTS = {
                               duration_hud_alert=0.),
   },
 
-  EventName.focusRecoverActive: {
-    ET.WARNING: Alert(
-      "TAKE CONTROL",
-      "Attempting Refocus: Camera Focus Invalid",
-      AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, .4, 2., 3., creation_delay=3.1),
-  },
 
   EventName.outOfSpace: {
     ET.NO_ENTRY: NoEntryAlert("Out of Storage Space",
@@ -545,15 +523,6 @@ EVENTS = {
 
   EventName.belowEngageSpeed: {
     ET.NO_ENTRY: NoEntryAlert("Speed Too Low"),
-  },
-
-  EventName.neosUpdateRequired: {
-    ET.PERMANENT: Alert(
-      "NEOS Update Required",
-      "Please Wait for Update",
-      AlertStatus.normal, AlertSize.mid,
-      Priority.HIGHEST, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
-    ET.NO_ENTRY: NoEntryAlert("NEOS Update Required"),
   },
 
   EventName.sensorDataInvalid: {
@@ -710,10 +679,10 @@ EVENTS = {
     ET.NO_ENTRY: NoEntryAlert("Cruise Fault: Restart the Car"),
   },
 
-  EventName.gasUnavailable: {
-    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Gas Fault: Restart the Car"),
-    ET.NO_ENTRY: NoEntryAlert("Gas Error: Restart the Car"),
-  },
+  # EventName.gasUnavailable: {
+  #   ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Gas Fault: Restart the Car"),
+  #   ET.NO_ENTRY: NoEntryAlert("Gas Error: Restart the Car"),
+  # },
 
   EventName.reverseGear: {
     ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Reverse Gear"),
@@ -769,15 +738,15 @@ EVENTS = {
       Priority.LOW, VisualAlert.none, AudibleAlert.chimeError, .4, 2., 3.),
   },
 
-  EventName.internetConnectivityNeeded: {
-    ET.PERMANENT: Alert(
-      "Please connect to Internet",
-      "An Update Check Is Required to Engage",
-      AlertStatus.normal, AlertSize.mid,
-      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
-    ET.NO_ENTRY: NoEntryAlert("Please Connect to Internet",
-                              audible_alert=AudibleAlert.chimeDisengage),
-  },
+  # EventName.internetConnectivityNeeded: {
+  #   ET.PERMANENT: Alert(
+  #     "Please connect to Internet",
+  #     "An Update Check Is Required to Engage",
+  #     AlertStatus.normal, AlertSize.mid,
+  #     Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
+  #   ET.NO_ENTRY: NoEntryAlert("Please Connect to Internet",
+  #                             audible_alert=AudibleAlert.chimeDisengage),
+  # },
 
   EventName.lowSpeedLockout: {
     ET.PERMANENT: Alert(

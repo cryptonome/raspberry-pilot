@@ -1,5 +1,4 @@
-#ifndef UTILPP_H
-#define UTILPP_H
+#pragma once
 
 #include <cstdio>
 #include <unistd.h>
@@ -61,6 +60,28 @@ inline std::string readlink(std::string path) {
   return "";
 }
 
+inline std::string getenv_default(const char* env_var, const char * suffix, const char* default_val) {
+  const char* env_val = getenv(env_var);
+  if (env_val != NULL){
+    return std::string(env_val) + std::string(suffix);
+  } else {
+    return std::string(default_val);
+  }
 }
 
-#endif
+
+}
+
+struct unique_fd {
+  unique_fd(int fd = -1) : fd_(fd) {}
+  unique_fd& operator=(unique_fd&& uf) {
+    fd_ = uf.fd_;
+    uf.fd_ = -1;
+    return *this;
+  }
+  ~unique_fd() {
+    if (fd_ != -1) close(fd_);
+  }
+  operator int() const { return fd_; }
+  int fd_;
+};

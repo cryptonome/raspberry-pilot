@@ -5,3 +5,6 @@ Documentation [here](https://github.com/Gernby/raspberry-pilot/tree/gh-pages)
 
 Until then, you can find more on my Discord server.
 https://discord.gg/MMGCVh9
+
+
+sudo apt-get install libi2c-dev

@@ -22,7 +22,7 @@ setproctitle('dashboard')
 
 frame_count = 0
 params = Params()
-profiler = Profiler(False, 'dashboard')
+profiler = Profiler(False)
 user_id = str(params.get("PandaDongleId", True))
 user_id = user_id.replace("'","")
 
@@ -47,8 +47,8 @@ context = zmq.Context()
 poller = zmq.Poller()
 vEgo = 0.0
 
-carState = messaging.sub_sock(service_list['carState'].port, conflate=False)
-pathPlan = messaging.sub_sock(service_list['pathPlan'].port, conflate=True)
+carState = messaging.sub_sock('carState', conflate=False)
+pathPlan = messaging.sub_sock('pathPlan', conflate=True)
 heartBeatSub = messaging.sub_sock(8597, addr=SERVER_ADDRESS, conflate=True)
 
 do_send_live = False

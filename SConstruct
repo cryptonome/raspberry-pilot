@@ -1,10 +1,11 @@
-import Cython
-import distutils
 import os
+import distutils
 import shutil
 import subprocess
 import sys
+import sysconfig
 import platform
+import numpy as np
 
 AddOption('--test',
           action='store_true',
@@ -15,8 +16,8 @@ AddOption('--asan',
           help='turn on ASAN')
 
 # Rebuild cython extensions if python, distutils, or cython change
-cython_dependencies = [Value(v) for v in (sys.version, distutils.__version__, Cython.__version__)]
-Export('cython_dependencies')
+#cython_dependencies = [Value(v) for v in (sys.version, distutils.__version__, Cython.__version__)]
+#Export('cython_dependencies')
 
 arch = subprocess.check_output(["uname", "-m"], encoding='utf8').rstrip()
 if platform.system() == "Darwin":
@@ -135,8 +136,12 @@ env = Environment(
     "-O2",
     "-Wunused",
     "-Werror",
+    "-Wno-unknown-warning-option",
     "-Wno-deprecated-register",
+    "-Wno-register",
     "-Wno-inconsistent-missing-override",
+    "-Wno-c99-designator",
+    "-Wno-reorder-init-list",
   ] + cflags + ccflags_asan,
 
   CPPPATH=cpppath + [
@@ -172,13 +177,36 @@ env = Environment(
   RPATH=rpath,
 
   CFLAGS=["-std=gnu11"] + cflags,
-  CXXFLAGS=["-std=c++14"] + cxxflags,
+  CXXFLAGS=["-std=c++1z"] + cxxflags,
   LIBPATH=libpath + [
     "#cereal",
-    "#selfdrive/common",
     "#phonelibs",
-  ]
+    "#opendbc/can",
+    "#selfdrive/boardd",
+    "#selfdrive/common",
+  ],
+  CYTHONCFILESUFFIX=".cpp",
+  COMPILATIONDB_USE_ABSPATH=True,
+  tools=["default", "cython", "compilation_db"],
 )
+
+
+# Cython build enviroment
+py_include = sysconfig.get_paths()['include']
+envCython = env.Clone()
+envCython["CPPPATH"] += [py_include, np.get_include()]
+envCython["CCFLAGS"] += ["-Wno-#warnings", "-Wno-deprecated-declarations"]
+
+envCython["LIBS"] = []
+if arch == "Darwin":
+  envCython["LINKFLAGS"] = ["-bundle", "-undefined", "dynamic_lookup"]
+elif arch == "aarch64":
+  envCython["LINKFLAGS"] = ["-shared"]
+  envCython["LIBS"] = [os.path.basename(py_include)]
+else:
+  envCython["LINKFLAGS"] = ["-pthread", "-shared"]
+
+Export('envCython')
 
 qt_env = None
 if arch in ["x86_64", "Darwin", "larch64"]:
@@ -286,12 +314,14 @@ else:
 
 Export('common')
 
+SConscript(['cereal/SConscript'])
 SConscript(['opendbc/can/SConscript'])
+
+SConscript(['phonelibs/SConscript'])
 
 SConscript(['common/SConscript'])
 SConscript(['common/kalman/SConscript'])
 SConscript(['common/transformations/SConscript'])
-SConscript(['phonelibs/SConscript'])
 
 SConscript(['selfdrive/controls/lib/cluster/SConscript'])
 SConscript(['selfdrive/controls/lib/lateral_mpc/SConscript'])

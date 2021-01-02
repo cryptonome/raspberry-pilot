@@ -39,10 +39,15 @@
 
 Panda * panda = NULL;
 std::atomic<bool> safety_setter_thread_running(false);
-volatile sig_atomic_t do_exit = 0;
 bool spoofing_started = false;
 bool fake_send = false;
 bool connected_once = false;
+bool ignition = false;
+
+volatile sig_atomic_t do_exit = 0;
+static void set_do_exit(int sig) {
+  do_exit = 1;
+}
 
 struct tm get_time(){
   time_t rawtime;
@@ -55,7 +60,9 @@ struct tm get_time(){
 }
 
 bool time_valid(struct tm sys_time){
-  return 1900 + sys_time.tm_year >= 2019;
+  int year = 1900 + sys_time.tm_year;
+  int month = 1 + sys_time.tm_mon;
+  return (year > 2020) || (year == 2020 && month >= 10);
 }
 
 void safety_setter_thread() {
@@ -70,7 +77,7 @@ void safety_setter_thread() {
       return;
     };
 
-    std::vector<char> value_vin = read_db_bytes("CarVin");
+    std::vector<char> value_vin = Params().read_db_bytes("CarVin");
     if (value_vin.size() > 0) {
       // sanity check VIN format
       assert(value_vin.size() == 17);
@@ -92,7 +99,7 @@ void safety_setter_thread() {
       return;
     };
 
-    params = read_db_bytes("CarParams");
+    params = Params().read_db_bytes("CarParams");
     if (params.size() > 0) break;
     usleep(100*1000);
   }
@@ -105,6 +112,8 @@ void safety_setter_thread() {
   capnp::FlatArrayMessageReader cmsg(amsg);
   cereal::CarParams::Reader car_params = cmsg.getRoot<cereal::CarParams>();
   cereal::CarParams::SafetyModel safety_model = car_params.getSafetyModel();
+
+  panda->set_unsafe_mode(0);  // see safety_declarations.h for allowed values
 
   auto safety_param = car_params.getSafetyParam();
   LOGW("setting safety model: %d with param %d", (int)safety_model, safety_param);
@@ -123,13 +132,15 @@ bool usb_connect() {
     return false;
   }
 
+  Params params = Params();
+
   if (getenv("BOARDD_LOOPBACK")) {
     panda->set_loopback(true);
   }
 
   const char *fw_sig_buf = panda->get_firmware_version();
   if (fw_sig_buf){
-    write_db_value("PandaFirmware", fw_sig_buf, 128);
+    params.write_db_value("PandaFirmware", fw_sig_buf, 128);
 
     // Convert to hex for offroad
     char fw_sig_hex_buf[16] = {0};
@@ -138,7 +149,7 @@ bool usb_connect() {
       fw_sig_hex_buf[2*i+1] = NIBBLE_TO_HEX((uint8_t)fw_sig_buf[i] & 0xF);
     }
 
-    write_db_value("PandaFirmwareHex", fw_sig_hex_buf, 16);
+    params.write_db_value("PandaFirmwareHex", fw_sig_hex_buf, 16);
     LOGW("fw signature: %.*s", 16, fw_sig_hex_buf);
 
     delete[] fw_sig_buf;
@@ -149,7 +160,7 @@ bool usb_connect() {
   if (serial_buf) {
     size_t serial_sz = strnlen(serial_buf, 16);
 
-    write_db_value("PandaDongleId", serial_buf, serial_sz);
+    params.write_db_value("PandaDongleId", serial_buf, serial_sz);
     LOGW("panda serial: %.*s", serial_sz, serial_buf);
 
     delete[] serial_buf;
@@ -187,17 +198,11 @@ void usb_retry_connect() {
 }
 
 void can_recv(PubMaster &pm) {
-  uint64_t start_time = nanos_since_boot();
-
   // create message
-  capnp::MallocMessageBuilder msg;
-  cereal::Event::Builder event = msg.initRoot<cereal::Event>();
-  event.setLogMonoTime(start_time);
-
-  int recv = panda->can_receive(event);
-  if (recv){
-    pm.send("can", msg);
-  }
+  MessageBuilder msg;
+  auto event = msg.initEvent();
+  panda->can_receive(event);
+  pm.send("can", msg);
 }
 
 void can_send_thread() {
@@ -258,7 +263,9 @@ void can_recv_thread() {
       useconds_t sleep = remaining / 1000;
       usleep(sleep);
     } else {
-      LOGW("missed cycle");
+      if (ignition){
+        LOGW("missed cycles (%d) %lld", (int)-1*remaining/dt, remaining);
+      }
       next_frame_time = cur_time;
     }
 
@@ -272,13 +279,12 @@ void can_health_thread() {
 
   uint32_t no_ignition_cnt = 0;
   bool ignition_last = false;
+  Params params = Params();
 
   // Broadcast empty health message when panda is not yet connected
-  while (!panda){
-    capnp::MallocMessageBuilder msg;
-    cereal::Event::Builder event = msg.initRoot<cereal::Event>();
-    event.setLogMonoTime(nanos_since_boot());
-    auto healthData = event.initHealth();
+  while (!do_exit && !panda) {
+    MessageBuilder msg;
+    auto healthData  = msg.initEvent().initHealth();
 
     healthData.setHwType(cereal::HealthData::HwType::UNKNOWN);
     pm.send("health", msg);
@@ -287,10 +293,8 @@ void can_health_thread() {
 
   // run at 2hz
   while (!do_exit && panda->connected) {
-    capnp::MallocMessageBuilder msg;
-    cereal::Event::Builder event = msg.initRoot<cereal::Event>();
-    event.setLogMonoTime(nanos_since_boot());
-    auto healthData = event.initHealth();
+    MessageBuilder msg;
+    auto healthData = msg.initEvent().initHealth();
 
     health_t health = panda->get_health();
 
@@ -303,7 +307,7 @@ void can_health_thread() {
       panda->set_safety_model(cereal::CarParams::SafetyModel::NO_OUTPUT);
     }
 
-    bool ignition = ((health.ignition_line != 0) || (health.ignition_can != 0));
+    ignition = ((health.ignition_line != 0) || (health.ignition_can != 0));
 
     if (ignition) {
       no_ignition_cnt = 0;
@@ -325,9 +329,9 @@ void can_health_thread() {
 
     // clear VIN, CarParams, and set new safety on car start
     if (ignition && !ignition_last) {
-      int result = delete_db_value("CarVin");
+      int result = params.delete_db_value("CarVin");
       assert((result == 0) || (result == ERR_NO_VALUE));
-      result = delete_db_value("CarParams");
+      result = params.delete_db_value("CarParams");
       assert((result == 0) || (result == ERR_NO_VALUE));
 
       if (!safety_setter_thread_running) {
@@ -392,9 +396,6 @@ void hardware_control_thread() {
   LOGD("start hardware control thread");
   SubMaster sm({"thermal", "frontFrame"});
 
-  // Other pandas don't have hardware to control
-  if (panda->hw_type != cereal::HealthData::HwType::UNO && panda->hw_type != cereal::HealthData::HwType::DOS) return;
-
   uint64_t last_front_frame_t = 0;
   uint16_t prev_fan_speed = 999;
   uint16_t ir_pwr = 0;
@@ -408,15 +409,8 @@ void hardware_control_thread() {
     cnt++;
     sm.update(1000); // TODO: what happens if EINTR is sent while in sm.update?
 
-    if (sm.updated("thermal")){
-      // Fan speed
-      uint16_t fan_speed = sm["thermal"].getThermal().getFanSpeed();
-      if (fan_speed != prev_fan_speed || cnt % 100 == 0){
-        panda->set_fan_speed(fan_speed);
-        prev_fan_speed = fan_speed;
-      }
-
 #ifdef QCOM
+    if (sm.updated("thermal")){
       // Charging mode
       bool charging_disabled = sm["thermal"].getThermal().getChargingDisabled();
       if (charging_disabled != prev_charging_disabled){
@@ -429,7 +423,18 @@ void hardware_control_thread() {
         }
         prev_charging_disabled = charging_disabled;
       }
+    }
 #endif
+
+    // Other pandas don't have fan/IR to control
+    if (panda->hw_type != cereal::HealthData::HwType::UNO && panda->hw_type != cereal::HealthData::HwType::DOS) continue;
+    if (sm.updated("thermal")){
+      // Fan speed
+      uint16_t fan_speed = sm["thermal"].getThermal().getFanSpeed();
+      if (fan_speed != prev_fan_speed || cnt % 100 == 0){
+        panda->set_fan_speed(fan_speed);
+        prev_fan_speed = fan_speed;
+      }
     }
     if (sm.updated("frontFrame")){
       auto event = sm["frontFrame"];
@@ -460,10 +465,8 @@ void hardware_control_thread() {
 
 static void pigeon_publish_raw(PubMaster &pm, std::string dat) {
   // create message
-  capnp::MallocMessageBuilder msg;
-  cereal::Event::Builder event = msg.initRoot<cereal::Event>();
-  event.setLogMonoTime(nanos_since_boot());
-  auto ublox_raw = event.initUbloxRaw(dat.length());
+  MessageBuilder msg;
+  auto ublox_raw = msg.initEvent().initUbloxRaw(dat.length());
   memcpy(ublox_raw.begin(), dat.data(), dat.length());
 
   pm.send("ubloxRaw", msg);
@@ -475,6 +478,7 @@ void pigeon_thread() {
 
   // ubloxRaw = 8042
   PubMaster pm({"ubloxRaw"});
+  bool ignition_last = false;
 
 #ifdef QCOM2
   Pigeon * pigeon = Pigeon::connect("/dev/ttyHS0");
@@ -482,18 +486,26 @@ void pigeon_thread() {
   Pigeon * pigeon = Pigeon::connect(panda);
 #endif
 
-  pigeon->init();
-
   while (!do_exit && panda->connected) {
     std::string recv = pigeon->receive();
     if (recv.length() > 0) {
       if (recv[0] == (char)0x00){
-        LOGW("received invalid ublox message, resetting panda GPS");
-        pigeon->init();
+        if (ignition) {
+          LOGW("received invalid ublox message while onroad, resetting panda GPS");
+          pigeon->init();
+        }
       } else {
         pigeon_publish_raw(pm, recv);
       }
     }
+
+    // init pigeon on rising ignition edge
+    // since it was turned off in low power mode
+    if(ignition && !ignition_last) {
+      pigeon->init();
+    }
+
+    ignition_last = ignition;
 
     // 10ms - 100 Hz
     usleep(10*1000);
@@ -512,6 +524,10 @@ int main() {
   LOG("set priority returns %d", err);
   err = set_core_affinity(3);
   LOG("set affinity returns %d", err);
+
+  // setup signal handlers
+  signal(SIGINT, (sighandler_t)set_do_exit);
+  signal(SIGTERM, (sighandler_t)set_do_exit);
 
   // check the environment
   if (getenv("STARTED")) {

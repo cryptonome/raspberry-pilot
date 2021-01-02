@@ -30,7 +30,7 @@ from tensorflow.python.keras.models import load_model
 setproctitle('transcoderd')
 
 params = Params()
-profiler = Profiler(False, 'transcoder')
+profiler = Profiler(False)
 #kegman = kegman_conf()  
 
 BIT_MASK = [1, 128, 64, 32, 8, 4, 2, 8, 
