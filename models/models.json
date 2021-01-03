@@ -1,8 +1,3 @@
 {
-	"TO DO": "Calculate discrete AND relative angles always, and use the difference to adjust angle_bias",
-	"1": "",
-	"2": "",
-	"models": ["LSTM_Triple_Shared_Adjusted_Weights11_TF23_7_Wide_4_Finger_mae_50_cFactor_0_Advance_0_Lag_15_Smooth_84_6_15_2_Hist_100_Future_0_0_0_Drop_2_2_2_0_Kernel_1_Stride_1_1_1_1_Dilate_Prod.hdf5",
-			   "LSTM_Triple_Shared_Adjusted_Weights11_TF23_7_Wide_4_Finger_mae_50_cFactor_0_Advance_0_Lag_15_Smooth_84_6_15_3_Hist_100_Future_0_0_0_Drop_2_2_2_0_Kernel_1_Stride_1_1_1_1_Dilate_Prod.hdf5",
-			   "LSTM_Triple_Shared_Adjusted_Weights11_TF23_7_Wide_4_Finger_mae_50_cFactor_0_Advance_0_Lag_15_Smooth_84_6_15_4_Hist_100_Future_0_0_0_Drop_2_2_2_0_Kernel_1_Stride_1_1_1_1_Dilate_Prod.hdf5"]
+		"models": ["Model-158.hdf5"]
 }
